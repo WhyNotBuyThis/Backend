@@ -73,6 +73,7 @@ public class SecurityConfig {
                                 return null;
                             }
                 }))
+                // TODO: 2024/10/31 oauth2 로그인 구현해야함 - Nano
                 .oauth2Login()
                 .successHandler(oAuth)
 

@@ -1,8 +1,9 @@
 package whynotthis.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import whynotthis.domain.exception.GeneralException;
+import whynotthis.domain.jwt.ErrorCode;
 import whynotthis.domain.jwt.JWTUtil;
 import whynotthis.domain.user.dto.UserDTO;
 import whynotthis.domain.user.entity.UserEntity;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -23,38 +25,18 @@ public class UserService {
             String userEmail = userDTO.getUserEmail();
             String userPw = userDTO.getUserPw();
 
-            boolean isExist = checkEmailDuplicate(userEmail);
-
-            if (isExist) {
-                throw new UsernameNotFoundException ("이미 존재하는 이메일입니다.");
-            } else {
-                userDTO.setUserPw(bCryptPasswordEncoder.encode(userPw));
-                UserEntity user = userDTO.toEntity();
-                userRepository.save(user);
+            if (checkEmailDuplicate(userEmail)) {
+                System.out.println(userEmail);
+                throw new GeneralException(ErrorCode.EMAIL_ALREADY_EXISTS);
             }
-        }
-
-        public String login(UserDTO userDTO) {
-            UserEntity user = userRepository.findByUserEmail(userDTO.getUserEmail())
-                    .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 이메일입니다."));
-
-            if (!bCryptPasswordEncoder.matches(userDTO.getUserPw(),user.getUserPw())) {
-                throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-            }
-
-            return jwtUtil.creatJwt(user.getUserEmail(), userDTO.getRole(), 60 * 60 * 1000L);
+            userDTO.setUserPw(bCryptPasswordEncoder.encode(userPw));
+            UserEntity user = userDTO.toEntity();
+            userRepository.save(user);
         }
 
         // 이메일 중복 체크
         private boolean checkEmailDuplicate(String userEmail) {
             return userRepository.existsByUserEmail(userEmail);
         }
-
-    // 로그인
-
-
-
-
-
 
 }

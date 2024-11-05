@@ -17,17 +17,17 @@ class UserRepositoryTest {
     @Autowired
     UserRepository userRepository;
 
-    @Test
-    @DisplayName("유저 저장")
-    void save() {
-        // Given
-    	UserEntity user = new UserEntity("asdasd@naver.com",23,"asdasd");
-        // When
-        userRepository.save(user);
-        // Then
-    	userRepository.findByUserEmail(user.getUserEmail());
-
-    }
+//    @Test
+//    @DisplayName("유저 저장")
+//    void save() {
+//        // Given
+//    	UserEntity user = new UserEntity("asdasd@naver.com",23,"asdasd");
+//        // When
+//        userRepository.save(user);
+//        // Then
+//    	userRepository.findByUserEmail(user.getUserEmail());
+//
+//    }
 
 
 

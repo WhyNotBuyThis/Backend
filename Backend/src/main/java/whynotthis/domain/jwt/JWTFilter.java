@@ -6,63 +6,52 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import whynotthis.domain.exception.GeneralException;
 import whynotthis.domain.user.dto.CustomUserDetails;
-import whynotthis.domain.user.dto.UserDTO;
 import whynotthis.domain.user.entity.UserEntity;
+import whynotthis.domain.user.repository.UserRepository;
 
 import java.io.IOException;
 
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
 
-    private  final JWTUtil jwtUtil;
+    private final JWTUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
-        // Request에서 Authorization 헤더를 찾음
         String authorization = request.getHeader("Authorization");
 
+        // 인증이 필요하지 않은 경로는 필터를 통과
+        if (request.getRequestURI().startsWith("/user/login") || request.getRequestURI().startsWith("/user/signup")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-
-            System.out.println("token null");
-            filterChain.doFilter(request,response);
-
-            // 조건이 해당되면 메소드 종료 (필수)
+            filterChain.doFilter(request, response);
             return;
         }
 
         String token = authorization.split(" ")[1];
 
-        // 소멸시간 검증
         if (jwtUtil.isExpired(token)) {
-
-            System.out.println("token expired");
-            filterChain.doFilter(request, response);
-
-            //조건이 해당되면 메소드 종료
-            return;
+            throw new GeneralException(ErrorCode.TOKEN_EXPIRED);
         }
 
         String userEmail = jwtUtil.getUserEmail(token);
-        String role = jwtUtil.getRole(token);
 
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUserEmail(userEmail);
-        userDTO.setUserPw("temppassword");
-        userDTO.setRole(role);
-        UserEntity user = userDTO.toEntity();
+        UserEntity user = userRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new GeneralException(ErrorCode.USER_NOT_FOUND));
 
         CustomUserDetails customUserDetails = new CustomUserDetails(user);
-
-        Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails,null,customUserDetails.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities())
+        );
 
         filterChain.doFilter(request, response);
     }
-
 }

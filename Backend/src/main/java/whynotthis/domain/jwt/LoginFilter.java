@@ -10,16 +10,14 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import whynotthis.domain.common.ApiResponse;
 import whynotthis.domain.user.dto.CustomUserDetails;
 import whynotthis.domain.user.service.CustomUserDetailsService;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -39,12 +37,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
-            // JSON 요청 본문을 Map으로 변환하여 사용자 이메일과 비밀번호를 추출
             Map<String, String> authRequest = objectMapper.readValue(request.getInputStream(), Map.class);
             String userEmail = authRequest.get("userEmail");
             String userPw = authRequest.get("userPw");
 
-            // 사용자 존재 여부를 사전 확인
             CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(userEmail);
             if (userDetails == null) {
                 throw new UsernameNotFoundException("User not found with email: " + userEmail);
@@ -53,7 +49,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userEmail, userPw);
             return authenticationManager.authenticate(authToken);
         } catch (UsernameNotFoundException e) {
-            // UsernameNotFoundException을 그대로 전달
             throw e;
         } catch (IOException e) {
             throw new RuntimeException("로그인 요청을 처리하는 중 오류가 발생했습니다.", e);
@@ -65,14 +60,27 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
         String userEmail = customUserDetails.getUsername();
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
-        GrantedAuthority auth = iterator.next();
+        String role = customUserDetails.getAuthorities().iterator().next().getAuthority();
 
-        String role = auth.getAuthority();
-
+        // JWT 토큰 생성
         String token = jwtUtil.creatJwt(userEmail, role, 60 * 60 * 500L);
+
+        // Authorization 헤더에 토큰 추가
         response.addHeader("Authorization", "Bearer " + token);
+
+        // ApiResponse에 성공 메시지와 사용자 정보를 포함하여 JSON 본문으로 응답
+        Map<String, Object> data = new HashMap<>();
+        data.put("userEmail", userEmail);
+        data.put("role", role);
+
+        ApiResponse<Object> apiResponse = ApiResponse.success("로그인 성공", data);
+
+        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiResponse);
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(json);
+        response.getWriter().flush();
     }
 
     @Override
@@ -91,12 +99,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             errorCode = ErrorCode.NOT_BLANK_ID;
         }
 
-        Map<String, String> jsonResponse = new HashMap<>();
-        jsonResponse.put("errorCode", String.valueOf(errorCode.getCode()));
-        jsonResponse.put("message", errorCode.getMessage());
+        ApiResponse<Object> apiResponse = ApiResponse.failure(errorCode.getMessage(), null);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonResponse);
+        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiResponse);
 
         response.getWriter().write(json);
         response.getWriter().flush();

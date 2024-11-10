@@ -1,4 +1,4 @@
-package whynotthis.domain.exception;
+package whynotthis.domain.common;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

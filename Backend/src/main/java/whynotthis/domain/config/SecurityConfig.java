@@ -49,22 +49,28 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
 
+        // 필터 인스턴스 생성
+        LoginFilter loginFilter = new LoginFilter(authenticationManager(), jwtUtil, customUserDetailsService);
+        loginFilter.setFilterProcessesUrl("/user/login");
+
+        JWTFilter jwtFilter = new JWTFilter(jwtUtil, userRepository);
+        ExceptionHandlingFilter exceptionHandlingFilter = new ExceptionHandlingFilter();
+
         httpSecurity
                 .csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .formLogin(formLogin -> formLogin.disable()) // 폼 로그인 비활성화
                 .httpBasic(httpBasic -> httpBasic.disable()) // 기본 HTTP 인증 비활성화
                 .authorizeRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/user/login", "/", "/user/signup").permitAll() // 인증이 필요없는 url 설정
-                        .requestMatchers("/admin").hasRole("ADMIN") // 인증이 필요한 url 설정과 적정 권한
-                        .anyRequest().authenticated()
+                        .requestMatchers("/user/login", "/", "/user/signup").permitAll() // 인증 필요 없는 URL 설정
+                        .requestMatchers("/admin").hasRole("ADMIN") // ADMIN 권한이 필요한 경로
+                        .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
-
-                .addFilterBefore(new ExceptionHandlingFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterAt(new LoginFilter(authenticationManager(), jwtUtil, customUserDetailsService), UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(new JWTFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(handler -> handler.authenticationEntryPoint(entryPoint))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // JWT 필터 먼저 실행
+                .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class) // 로그인 필터 추가
+                .addFilterBefore(exceptionHandlingFilter, JWTFilter.class) // 예외 처리 필터 추가
+                .exceptionHandling(handler -> handler.authenticationEntryPoint(entryPoint)) // 인증 실패 시 처리
                 .sessionManagement(sessionManagement ->
-                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 정책을 Stateless로 설정
+                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless 세션 관리
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())); // 분리된 CORS 설정 사용
 
         return httpSecurity.build();

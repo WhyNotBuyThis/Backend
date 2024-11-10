@@ -1,12 +1,11 @@
 package whynotthis.global;
 
-import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import whynotthis.domain.exception.ErrorResponseDto;
+import whynotthis.domain.common.ApiResponse;
 import whynotthis.domain.exception.GeneralException;
 import whynotthis.domain.jwt.ErrorCode;
 
@@ -14,12 +13,15 @@ import whynotthis.domain.jwt.ErrorCode;
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(GeneralException.class)
-    public ResponseEntity<ErrorResponseDto> handleCustomException(GeneralException ex) {
+    public ResponseEntity<ApiResponse<Object>> handleCustomException(GeneralException ex) {
         return buildErrorResponse(ex.getErrorCode());
     }
 
-    private ResponseEntity<ErrorResponseDto> buildErrorResponse(ErrorCode errorCode) {
-        ErrorResponseDto errorResponseDto = new ErrorResponseDto(errorCode.getCode(), errorCode.getMessage());
-        return new ResponseEntity<>(errorResponseDto, HttpStatus.BAD_REQUEST);
+    private ResponseEntity<ApiResponse<Object>> buildErrorResponse(ErrorCode errorCode) {
+        // ApiResponse 형식으로 에러 응답 생성
+        ApiResponse<Object> errorResponse = ApiResponse.failure(errorCode.getMessage(), null);
+        HttpStatus status = HttpStatus.valueOf(errorCode.getCode());
+
+        return new ResponseEntity<>(errorResponse, status);
     }
 }

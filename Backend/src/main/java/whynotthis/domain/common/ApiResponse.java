@@ -1,6 +1,5 @@
 package whynotthis.domain.common;
 
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

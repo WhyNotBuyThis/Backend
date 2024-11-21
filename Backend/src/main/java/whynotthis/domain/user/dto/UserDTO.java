@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import whynotthis.domain.user.UserRole;
 import whynotthis.domain.user.entity.UserEntity;
 
 @Getter
@@ -18,7 +19,7 @@ public class UserDTO {
     @Size(min = 8, max = 20, message = "비밀번호는 8자 이상 20자 이하로 입력해주세요.")
     private String userPw;
 
-    private String role;
+    private UserRole role;
 
     public UserEntity toEntity() {
         return new UserEntity(

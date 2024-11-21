@@ -1,6 +1,5 @@
 package whynotthis.domain.exception;
 
-import lombok.Builder;
 import lombok.Getter;
 import whynotthis.domain.jwt.ErrorCode;
 
@@ -8,7 +7,6 @@ import whynotthis.domain.jwt.ErrorCode;
 public class GeneralException extends RuntimeException{
 
     private final ErrorCode errorCode;
-
 
     public GeneralException(ErrorCode errorCode){
         super(errorCode.getMessage());

@@ -9,6 +9,7 @@ import whynotthis.domain.board.entity.BoardEntity;
 import whynotthis.domain.board.repository.BoardRepository;
 import whynotthis.domain.exception.GeneralException;
 import whynotthis.domain.jwt.ErrorCode;
+import whynotthis.domain.user.dto.CustomUserDetails;
 import whynotthis.domain.user.entity.UserEntity;
 import whynotthis.domain.user.repository.UserRepository;
 
@@ -41,7 +42,6 @@ public class BoardService {
     }
 
     public BoardResponseDTO getBoard(Long boardId) {
-
         BoardEntity board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FIND_BOARD));
 
@@ -59,18 +59,28 @@ public class BoardService {
                 .toList();
     }
 
-    public BoardResponseDTO updateBoard(BoardRequestDTO boardRequestDTO, Long boardId) {
+
+    public BoardResponseDTO updateBoard(BoardRequestDTO boardRequestDTO, Long boardId, CustomUserDetails userDetails) {
+        String email = userDetails.getUsername();
         BoardEntity board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FIND_BOARD));
-        // TODO: 2024/11/21 수정 할 수 있는 아이디인지 확인하는거 넣기 - Nano
+        if(!board.getUser().getUserEmail().equals(email)) {
+            throw new GeneralException(ErrorCode.UNAUTHORIZED_ACCESS);
+        }
         board.update(boardRequestDTO);
-        boardRepository.save(board);
         return BoardResponseDTO.builder()
                 .boardEntity(board)
                 .build();
     }
 
-//    public BoardResponseDTO delete(BoardRequestDTO boardRequestDTO) {
-//        boardRepository.delete();
-//    }
+    public void delete(Long boardId,String email) {
+        BoardEntity board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new GeneralException(ErrorCode.NOT_FIND_BOARD));
+
+        if(!board.getUser().getUserEmail().equals(email)) {
+            throw new GeneralException(ErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
+        boardRepository.deleteById(boardId);
+    }
 }

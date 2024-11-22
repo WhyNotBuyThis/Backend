@@ -28,7 +28,7 @@ public class BoardResponseDTO {
         this.boardTitle = boardEntity.getBoardTitle();
         this.createAt = boardEntity.getCreateAt();
         this.userEmail = boardEntity.getUser().getUserEmail();
-        this.updateAt = boardEntity.getUser().getUpdateAt();
+        this.updateAt = boardEntity.getUpdateAt();
         this.boardContent = boardEntity.getBoardContent();
     }
 }

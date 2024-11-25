@@ -28,11 +28,6 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
     @Override
     public List<ItemEntity> filterItems(Gender gender, Age age, Gift gift, Long minPrice, Long maxPrice) {
         QItemEntity item = QItemEntity.itemEntity;
-        System.out.println(gender);
-        System.out.println(age);
-        System.out.println(gift);
-        System.out.println(maxPrice);
-        System.out.println(minPrice);
         // 먼저 조건에 맞는 모든 아이템 조회
         List<ItemEntity> matchedItems = queryFactory.selectFrom(item)
                 .where(

@@ -12,6 +12,7 @@ import whynotthis.domain.item.entity.QItemEntity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository
@@ -27,10 +28,13 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
     @Override
     public List<ItemEntity> filterItems(Gender gender, Age age, Gift gift, Long minPrice, Long maxPrice) {
         QItemEntity item = QItemEntity.itemEntity;
-
-        // 조건에 맞는 아이템들이 존재하는 카테고리들을 조회
-        List<Category> categories = queryFactory.selectDistinct(item.category)
-                .from(item)
+        System.out.println(gender);
+        System.out.println(age);
+        System.out.println(gift);
+        System.out.println(maxPrice);
+        System.out.println(minPrice);
+        // 먼저 조건에 맞는 모든 아이템 조회
+        List<ItemEntity> matchedItems = queryFactory.selectFrom(item)
                 .where(
                         item.gift.eq(gift),
                         item.gender.eq(gender),
@@ -38,21 +42,27 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
                         item.itemPrice.between(minPrice, maxPrice)
                 )
                 .fetch();
-
-        // 카테고리가 없는 경우 빈 결과 반환
-        if (categories.isEmpty()) {
+        System.out.println(matchedItems);
+        // 조건에 맞는 아이템이 없으면 빈 결과 반환
+        if (matchedItems.isEmpty()) {
             return Collections.emptyList();
         }
 
-        // 카테고리를 랜덤하게 섞어서 최대 3개 선택
-        Collections.shuffle(categories);
-        List<Category> selectedCategories = categories.stream()
+        List<Category> uniqueCategories = matchedItems.stream()
+                .map(ItemEntity::getCategory)
+                .filter(Objects::nonNull) // null 값을 제거
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 카테고리를 랜덤으로 섞어서 최대 3개 선택
+        Collections.shuffle(uniqueCategories);
+        List<Category> selectedCategories = uniqueCategories.stream()
                 .limit(3)
                 .toList();
 
         List<ItemEntity> result = new ArrayList<>();
 
-        // 선택한 각 카테고리에서 조건에 맞는 아이템을 하나씩 가져옴
+        // 선택된 각 카테고리에서 조건에 맞는 아이템을 하나씩 가져옴
         for (Category category : selectedCategories) {
             ItemEntity singleItem = queryFactory.selectFrom(item)
                     .where(

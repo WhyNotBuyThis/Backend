@@ -31,11 +31,11 @@ public class ItemEntity extends BaseEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Age age;
+    private Gender gender;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Gender gender;
+    private Age age;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

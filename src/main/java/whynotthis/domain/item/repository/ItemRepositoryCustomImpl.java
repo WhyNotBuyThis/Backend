@@ -57,7 +57,7 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
 
         List<ItemEntity> result = new ArrayList<>();
 
-        // 선택된 각 카테고리에서 조건에 맞는 아이템을 하나씩 가져옴
+        // 선택된 각 카테고리에서 조건에 맞는 아이템을 하나씩 가져옴 
         for (Category category : selectedCategories) {
             ItemEntity singleItem = queryFactory.selectFrom(item)
                     .where(

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import whynotthis.domain.exception.GeneralException;
 import whynotthis.domain.jwt.ErrorCode;
-import whynotthis.domain.jwt.JWTUtil;
+import whynotthis.domain.jwt.JwtTokenProvider;
 import whynotthis.domain.user.dto.UserDTO;
 import whynotthis.domain.user.entity.UserEntity;
 import whynotthis.domain.user.repository.UserRepository;
@@ -16,7 +16,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final JWTUtil jwtUtil;
+    private final JwtTokenProvider jwtTokenProvider;
 
         // 회원가입 로직
         public void signUp(UserDTO userDTO) {

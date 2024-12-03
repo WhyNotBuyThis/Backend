@@ -19,6 +19,7 @@ public class ItemController {
 
     @PostMapping("/recommend")
     public ResponseEntity<List<ItemResponseDTO>> filterItems(@RequestBody ItemRequestDTO itemRequestDTO) {
+        System.out.println("Request received in controller: " + itemRequestDTO);
         List<ItemResponseDTO> response = itemService.filterItem(itemRequestDTO);
         return ResponseEntity.ok(response);
     }

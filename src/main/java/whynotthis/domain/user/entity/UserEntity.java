@@ -1,6 +1,8 @@
 package whynotthis.domain.user.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import whynotthis.domain.user.UserRole;
@@ -9,6 +11,8 @@ import whynotthis.global.BaseEntity;
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserEntity extends BaseEntity {
 
     @Id

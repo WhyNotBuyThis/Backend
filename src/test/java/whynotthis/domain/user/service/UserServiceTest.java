@@ -4,15 +4,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import whynotthis.domain.exception.GeneralException;
 import whynotthis.domain.jwt.ErrorCode;
-import whynotthis.domain.jwt.JWTUtil;
 import whynotthis.domain.user.dto.UserDTO;
 import whynotthis.domain.user.repository.UserRepository;
-import whynotthis.domain.user.service.UserService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
